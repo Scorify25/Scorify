@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Liga Rakyat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fdfdfd;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      background: linear-gradient(90deg,#1565c0,#42a5f5);
+      color: white;
+      padding: 25px 15px;
+      position: relative;
+    }
+    header img {
+      position: absolute;
+      top: 10px;
+      width: 60px;
+      height: auto;
+    }
+    header img.left { left: 10px; }
+    header img.right { right: 10px; }
+    h1 { margin: 0; font-size: 2em; }
+    p { margin: 5px 0 0; }
+
+    h2 {
+      text-align: center;
+      margin: 25px 0 10px;
+      color: #1565c0;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 10px auto 25px;
+      max-width: 95%;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+      font-size: 13px;
+    }
+    th {
+      background: #1565c0;
+      color: white;
+    }
+    tr:nth-child(even) { background: #f9f9f9; }
+
+    .match {
+      background: white;
+      border: 2px solid #1976d2;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin: 10px auto;
+      max-width: 400px;
+      text-align: center;
+      font-size: 14px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    }
+    .match strong {
+      display: block;
+      color: #1565c0;
+      margin-bottom: 6px;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.9em;
+      color: #555;
+      padding: 15px;
+      border-top: 1px solid #ccc;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJtghlEg3Zi58pGN88IxZtDfJWLxi8EJBxtwGYXaDdz1lHILsBr_glAdc&s" class="left" alt="Kopa Arena">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqI0U0OGqMU_O_jgJg8bop8dwmvBj0KeC9Pt39xrOzriUCxl0KjWfNjHM&s" class="right" alt="Xlokal Club">
+    <h1>Liga Rakyat</h1>
+    <p>Dari komuniti untuk komuniti</p>
+  </header>
+
+  <section id="groups">
+    <h2>Group Standings</h2>
+    <div id="group-standings"></div>
+  </section>
+
+  <section id="fixtures">
+    <h2>Fixtures</h2>
+    <div id="fixtures-list"></div>
+  </section>
+
+  <section id="knockout">
+    <h2>Knockout Stage</h2>
+    <div id="knockout-list"></div>
+  </section>
+
+  <footer>
+    Liga ini disokong oleh <strong>Xlokal Club</strong> & <strong>Kopa Arena</strong>
+  </footer>
+
+  <script>
+    async function loadCSV(url) {
+      const res = await fetch(url + "&t=" + new Date().getTime());
+      const text = await res.text();
+      return text.trim().split("\n").map(r => r.split(","));
+    }
+
+    async function showStandings() {
+      let rows = await loadCSV("https://docs.google.com/spreadsheets/d/e/2PACX-1vTAW-BnG2LnhvE0qBnCzGZWcHnuAUGvckaQ5Hzn-jW9WN4WBwossXuly-OrjqEof1SNMvJ4yVpRZDIJ/pub?output=csv");
+      let data = rows.slice(1);
+      let groups = {};
+      data.forEach(r => {
+        let group = r[0];
+        if (!groups[group]) groups[group] = [];
+        groups[group].push(r);
+      });
+
+      let html = "";
+      for (let g in groups) {
+        html += `<h3 style="text-align:center;margin-top:20px;">Group ${g}</h3><div class="table-wrapper"><table><tr><th>Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr>`;
+        groups[g].forEach(r=>{
+          html += `<tr><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td><td>${r[7]}</td><td>${r[8]}</td><td>${r[9]}</td></tr>`;
+        });
+        html += `</table></div>`;
+      }
+      document.getElementById("group-standings").innerHTML = html;
+    }
+
+    async function showFixtures() {
+      let rows = await loadCSV("https://docs.google.com/spreadsheets/d/e/2PACX-1vSoynsbx7wKkm-nOiZkH_yvkck7OEfcZSsxgyA-1vYOO0ZPOxZ50oGZp9381OYZVavB7V-6m1s-Air8/pub?output=csv");
+      let data = rows.slice(1);
+      let html = "";
+      data.forEach(r=>{
+        html += `<div class="match"><strong>${r[0]}</strong>${r[1]} ${r[2]} - ${r[3]} ${r[4]}</div>`;
+      });
+      document.getElementById("fixtures-list").innerHTML = html;
+    }
+
+    async function showKnockout() {
+      let rows = await loadCSV("https://docs.google.com/spreadsheets/d/e/2PACX-1vR39wNoJiGAdhAyYDM2TBK5MB8BmZ7MIwgFFB3Tt7AqBvl4qQZ0fPPptZtj_hW4kSKc6pZIjRkZ2t43/pub?output=csv");
+      let data = rows.slice(1);
+      let html = "";
+      let lastRound = "";
+      data.forEach(r=>{
+        if (r[0] !== lastRound) {
+          html += `<h3 style="text-align:center;margin-top:15px;">${r[0]}</h3>`;
+          lastRound = r[0];
+        }
+        html += `<div class="match"><strong>${r[0]}</strong>${r[1]} ${r[2]} - ${r[3]} ${r[4]}</div>`;
+      });
+      document.getElementById("knockout-list").innerHTML = html;
+    }
+
+    function refreshAll() {
+      showStandings();
+      showFixtures();
+      showKnockout();
+    }
+    refreshAll();
+    setInterval(refreshAll, 30000);
+  </script>
+</body>
+</html>
